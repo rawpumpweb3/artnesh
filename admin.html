@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artnesh — Admin Panel</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0b0b0b;color:#fff;font-family:'Inter',sans-serif;min-height:100vh}
+.admin-nav{display:flex;align-items:center;justify-content:space-between;padding:0 36px;height:54px;border-bottom:1px solid rgba(255,255,255,.06)}
+.admin-nav h1{font-family:'Playfair Display',serif;font-size:13px;font-weight:500;letter-spacing:.12em;text-transform:uppercase}
+.admin-nav a{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.4);text-decoration:none;transition:color .2s}
+.admin-nav a:hover{color:#fff}
+.admin-container{max-width:1000px;margin:0 auto;padding:40px 24px}
+.section-title{font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:24px;font-weight:500}
+.slots{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.slot{aspect-ratio:3/2;border:1px dashed rgba(255,255,255,.12);border-radius:6px;position:relative;cursor:pointer;overflow:hidden;transition:border-color .2s,background .2s;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.slot:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.02)}
+.slot.filled{border:1px solid rgba(255,255,255,.06)}
+.slot-num{font-size:10px;color:rgba(255,255,255,.15);letter-spacing:.1em;margin-bottom:4px}
+.slot-plus{font-size:24px;color:rgba(255,255,255,.12);font-weight:200}
+.slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.slot-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.slot.filled:hover .slot-overlay{opacity:1}
+.slot-btn{width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.slot-btn.remove{background:rgba(255,60,60,.7);color:#fff}
+.slot-btn.replace{background:rgba(255,255,255,.2);color:#fff}
+.slot-btn:hover{filter:brightness(1.2)}
+</style>
+</head>
+<body>
+<nav class="admin-nav">
+  <h1>Artnesh — Admin</h1>
+  <a href="index.html">← Back to Site</a>
+</nav>
+<div class="admin-container">
+  <div class="section-title">Gallery Slots (50) — Cloudinary Storage</div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+    <button id="btn-random" style="padding:8px 20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:4px;color:#fff;font-family:'Playfair Display',serif;font-size:11px;letter-spacing:.1em;cursor:pointer;transition:background .2s">↻ Randomize Order</button>
+    <span style="font-size:10px;color:rgba(255,255,255,.2)">Shuffle image positions on the main page</span>
+  </div>
+  <div class="slots" id="slots"></div>
+  <div style="margin-top:24px;font-size:11px;color:rgba(255,255,255,.2);line-height:1.8">Images uploaded to Cloudinary (cloud). No size limit per image. Click slot to upload, hover to replace/remove.</div>
+</div>
+<div id="toast" style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;padding:12px 24px;border-radius:6px;font-size:12px;letter-spacing:.04em;pointer-events:none;transition:opacity .3s,transform .3s;z-index:9999"></div>
+</body>
+</html>
+
+<style>
+.slot-caption{position:absolute;bottom:0;left:0;right:0;padding:6px 8px;background:linear-gradient(transparent,rgba(0,0,0,.7))}
+.slot-caption input{width:100%;background:none;border:none;color:#fff;font-size:10px;outline:none;font-family:inherit;letter-spacing:.02em}
+.slot input[type="file"]{display:none}
+.slot.uploading{pointer-events:none}
+.slot.uploading::after{content:'';position:absolute;inset:0;background:rgba(11,11,11,.8);z-index:1}
+.slot-loader{position:absolute;z-index:2;width:24px;height:24px;border:2px solid rgba(255,255,255,.1);border-top-color:rgba(255,255,255,.6);border-radius:50%;animation:spin .6s linear infinite;display:none}
+.slot.uploading .slot-loader{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<script>
+const CLOUD_NAME='dlogqjuwl';
+const UPLOAD_PRESET='artnesh';
+const TOTAL_SLOTS=50;
+const slotsEl=document.getElementById('slots');
+const toastEl=document.getElementById('toast');
+
+function toast(msg,type){
+  toastEl.textContent=msg;
+  toastEl.style.background=type==='error'?'#c0392b':'#27ae60';
+  toastEl.style.color='#fff';
+  toastEl.style.opacity='1';
+  toastEl.style.transform='translateX(-50%) translateY(0)';
+  clearTimeout(toastEl._t);
+  toastEl._t=setTimeout(()=>{toastEl.style.opacity='0';toastEl.style.transform='translateX(-50%) translateY(20px)';},3000);
+}
+
+function getImages(){
+  try{ return JSON.parse(localStorage.getItem('artnesh_images'))||[]; }
+  catch(e){ return []; }
+}
+function saveImages(imgs){ localStorage.setItem('artnesh_images',JSON.stringify(imgs)); }
+
+async function uploadToCloudinary(file){
+  const formData=new FormData();
+  formData.append('file',file);
+  formData.append('upload_preset',UPLOAD_PRESET);
+  formData.append('folder','artnesh');
+  const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,{method:'POST',body:formData});
+  if(!res.ok) throw new Error('Upload failed');
+  return await res.json();
+}
+
+function render(){
+  const imgs=getImages();
+  slotsEl.innerHTML='';
+  for(let i=0;i<TOTAL_SLOTS;i++){
+    const slot=document.createElement('div');
+    slot.className='slot'+(imgs[i]?' filled':'');
+    const fileInput=document.createElement('input');
+    fileInput.type='file';fileInput.accept='image/*';
+    fileInput.addEventListener('change',e=>handleUpload(i,e.target.files[0],slot));
+    slot.appendChild(fileInput);
+    const loader=document.createElement('div');
+    loader.className='slot-loader';
+    slot.appendChild(loader);
+    if(imgs[i]){
+      slot.innerHTML+=`<img src="${imgs[i].src}"><div class="slot-overlay"><button class="slot-btn replace" title="Replace">↻</button><button class="slot-btn remove" title="Remove">×</button></div><div class="slot-caption"><input type="text" value="${imgs[i].caption||''}" placeholder="Caption..."></div>`;
+      slot.querySelector('.replace').addEventListener('click',e=>{e.stopPropagation();fileInput.click();});
+      slot.querySelector('.remove').addEventListener('click',e=>{e.stopPropagation();removeImage(i);});
+      slot.querySelector('.slot-caption input').addEventListener('change',e=>{updateCaption(i,e.target.value);});
+      slot.addEventListener('click',e=>{if(e.target.tagName!=='INPUT'&&!e.target.closest('.slot-btn'))fileInput.click();});
+    } else {
+      slot.innerHTML+=`<div class="slot-num">${String(i+1).padStart(2,'0')}</div><div class="slot-plus">+</div>`;
+      slot.addEventListener('click',()=>fileInput.click());
+    }
+    slotsEl.appendChild(slot);
+  }
+}
+
+async function handleUpload(idx,file,slot){
+  if(!file||!file.type.startsWith('image/'))return;
+  slot.classList.add('uploading');
+  try{
+    const data=await uploadToCloudinary(file);
+    const imgs=getImages();
+    while(imgs.length<=idx)imgs.push(null);
+    imgs[idx]={src:data.secure_url,caption:file.name.replace(/\.[^.]+$/,'')};
+    saveImages(imgs);
+    toast(`Slot ${idx+1} — upload berhasil ✓`,'success');
+  } catch(e){
+    toast(`Slot ${idx+1} — upload gagal! ${e.message}`,'error');
+  }
+  slot.classList.remove('uploading');
+  render();
+}
+
+function removeImage(idx){
+  const imgs=getImages();
+  imgs[idx]=null;
+  saveImages(imgs);
+  toast(`Slot ${idx+1} — gambar dihapus`,'success');
+  render();
+}
+
+function updateCaption(idx,val){
+  const imgs=getImages();
+  if(imgs[idx])imgs[idx].caption=val;
+  saveImages(imgs);
+}
+
+render();
+
+document.getElementById('btn-random').addEventListener('click',()=>{
+  const imgs=getImages();
+  const filled=imgs.filter(x=>x!==null);
+  for(let i=filled.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [filled[i],filled[j]]=[filled[j],filled[i]];
+  }
+  const newImgs=[];
+  let fi=0;
+  for(let i=0;i<TOTAL_SLOTS;i++){
+    if(imgs[i]!==null&&fi<filled.length){newImgs.push(filled[fi++]);}
+    else{newImgs.push(null);}
+  }
+  saveImages(newImgs);
+  toast('Urutan gambar di-random ✓','success');
+  render();
+});
+</script>

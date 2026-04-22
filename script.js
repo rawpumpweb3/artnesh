@@ -2,9 +2,16 @@ import * as THREE from 'three';
 
 // ── Image Data (shared by grid + list) ──
 const imgURLs=[];
-const ids=[1005,1011,1012,1025,1027,1035,1036,1038,1039,1040,1041,1043,1044,1045,1047,1049,1050,1051,1052,1053,1055,1057,1058,1059,1060,1062,1063,1064,1065,1066,1067,1068,1069,1070,1071,1073];
-ids.forEach(id=>imgURLs.push(`https://picsum.photos/id/${id}/600/600`));
-const captions=['Studio Session','Morning Light','Editorial Vol.3','Untitled','Portrait Series','Commercial','Night Shoot','Archive 2023','Fashion Week','Candid','Documentary','Urban Portraits','Golden Hour','Studio Vol.7','Collaboration','Street','Personal Work','Cover Shoot','Editorial','Backstage','Rooftop','Archive Vol.2','Film Test','Portrait 35mm','Brand Campaign','Music Video','Candid Vol.4','Sunset','Polaroid','Studio Outtakes','Urban','Editorial Vol.8','Concert','Abstract','Personal Archive','Film Noir'];
+const captions=[];
+const storedImages=(()=>{ try{ return JSON.parse(localStorage.getItem('artnesh_images'))||[]; }catch(e){ return []; } })();
+const hasStored=storedImages.some(item=>item!==null);
+if(hasStored){
+  storedImages.forEach(item=>{ if(item){ imgURLs.push(item.src); captions.push(item.caption||'Untitled'); } });
+} else {
+  const ids=[1005,1011,1012,1025,1027,1035,1036,1038,1039,1040,1041,1043,1044,1045,1047,1049,1050,1051,1052,1053,1055,1057,1058,1059,1060,1062,1063,1064,1065,1066,1067,1068,1069,1070,1071,1073];
+  ids.forEach(id=>imgURLs.push(`https://picsum.photos/id/${id}/900/600`));
+  captions.push('Studio Session','Morning Light','Editorial Vol.3','Untitled','Portrait Series','Commercial','Night Shoot','Archive 2023','Fashion Week','Candid','Documentary','Urban Portraits','Golden Hour','Studio Vol.7','Collaboration','Street','Personal Work','Cover Shoot','Editorial','Backstage','Rooftop','Archive Vol.2','Film Test','Portrait 35mm','Brand Campaign','Music Video','Candid Vol.4','Sunset','Polaroid','Studio Outtakes','Urban','Editorial Vol.8','Concert','Abstract','Personal Archive','Film Noir');
+}
 
 // ── Menu Overlay ──
 const menuOverlay=document.getElementById('menu-overlay');
@@ -41,6 +48,9 @@ window.goTo=function(name){
     from.classList.remove('exit');
     to.scrollTop=0;
     to.classList.add('active');
+    // Blur fade in inner page content
+    const fadeEls=to.querySelectorAll('.inner-hero,.inner-body,.work-grid,.about-stats,.contact-email,.contact-socials');
+    fadeEls.forEach((el,i)=>{el.classList.remove('blur-fade-in');void el.offsetWidth;el.classList.add('blur-fade-in');el.style.animationDelay=(i*0.1)+'s';});
     currentPage=name;
     setTimeout(()=>{ overlay.classList.remove('active'); },100);
   },400);
@@ -50,7 +60,13 @@ window.goTo=function(name){
 const lightbox=document.getElementById('lightbox');
 const lbImg=document.getElementById('lightbox-img');
 const lbCaption=document.getElementById('lightbox-caption');
-function openLightbox(s,c){lbImg.src=s;lbCaption.textContent=c;lightbox.classList.add('active');}
+function openLightbox(s,c){
+  lbImg.style.visibility='hidden';
+  lbImg.src=s;
+  lbImg.onload=()=>{ lbImg.style.visibility='visible'; };
+  lbCaption.textContent=c;
+  lightbox.classList.add('active');
+}
 function closeLightbox(){lightbox.classList.remove('active');}
 lightbox.addEventListener('click',closeLightbox);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();});
@@ -62,12 +78,16 @@ const listCaptionEl=document.getElementById('list-caption');
 let listIndex=0;
 
 let listBuilt=false;
+const ITEM_W_VW=50;
 imgURLs.forEach((src,i)=>{
+  const item=document.createElement('div');
+  item.style.cssText='width:50vw;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:transform .5s cubic-bezier(.4,0,.2,1),opacity .5s';
   const img=document.createElement('img');
   img.dataset.src=src;
   img.alt=captions[i%captions.length];
-  img.addEventListener('click',()=>{ listIndex=i; updateListView(); });
-  listTrack.appendChild(img);
+  item.addEventListener('click',()=>{ listIndex=i; updateListView(); });
+  item.appendChild(img);
+  listTrack.appendChild(item);
 });
 
 function buildListImages(){
@@ -79,15 +99,20 @@ function buildListImages(){
 }
 
 function updateListView(){
-  const imgs=listTrack.querySelectorAll('img');
-  imgs.forEach((img,i)=>img.classList.toggle('active',i===listIndex));
-  listCaptionEl.textContent=captions[listIndex%captions.length];
-  const activeImg=imgs[listIndex];
-  if(activeImg){
-    const centerX=window.innerWidth/2;
-    const imgCenter=activeImg.offsetLeft+activeImg.offsetWidth/2;
-    listTrack.style.transform=`translateX(${centerX-imgCenter}px)`;
+  const items=listTrack.children;
+  for(let i=0;i<items.length;i++){
+    if(i===listIndex){
+      items[i].style.cssText='width:50vw;flex-shrink:0;display:flex;align-items:center;justify-content:center;opacity:1;transform:scale(1.15);transition:transform .5s,opacity .5s;filter:brightness(1)';
+    } else {
+      items[i].style.cssText='width:50vw;flex-shrink:0;display:flex;align-items:center;justify-content:center;opacity:0.15;transform:scale(0.35);transition:transform .5s,opacity .5s;filter:brightness(0.3)';
+    }
   }
+  listCaptionEl.textContent=captions[listIndex%captions.length];
+  const itemW=window.innerWidth*(ITEM_W_VW/100);
+  const totalOffset=listIndex*itemW;
+  const centerOffset=(window.innerWidth-itemW)/2;
+  listTrack.style.transition='transform .5s cubic-bezier(.4,0,.2,1)';
+  listTrack.style.transform=`translateX(${centerOffset-totalOffset}px)`;
 }
 
 function showGridView(){
@@ -103,10 +128,13 @@ function showListView(){
   buildListImages();
   gridCanvas.style.display='none';
   blurLayers.forEach(l=>l.style.display='none');
+  listIndex=0;
   listView.classList.add('active');
+  // Force layout before updating styles
+  listView.offsetHeight;
+  updateListView();
   document.getElementById('btn-list').classList.add('active');
   document.getElementById('btn-grid').classList.remove('active');
-  setTimeout(updateListView,50);
 }
 document.getElementById('btn-grid').addEventListener('click',showGridView);
 document.getElementById('btn-list').addEventListener('click',showListView);
@@ -126,25 +154,32 @@ const fovRad_init=55*Math.PI/180;
 const visibleHeight=2*Math.tan(fovRad_init/2)*4.2;
 const visibleWidth=visibleHeight*aspect_init;
 
-const COLS=5;
-const ROWS=9;
-const EDGE_MARGIN=0.3;
-const ROW_GAP=0.22;
-const PLANE_W=(visibleWidth - 2.0 - 0.22*(COLS-1))/COLS;
+const isMobile=window.innerWidth<768;
+const COLS=isMobile?2:5;
+const ROWS=isMobile?15:9;
+const EDGE_MARGIN=isMobile?0.15:0.3;
+const ROW_GAP=0.45;
+const PLANE_W=(visibleWidth - (isMobile?0.8:2.0) - 0.22*(COLS-1))/COLS;
 const COL_GAP=(visibleWidth - EDGE_MARGIN - COLS*PLANE_W)/(COLS-1);
 const usableWidth=COLS*PLANE_W+COL_GAP*(COLS-1);
 
-const rowAspects=[
-  [0.65, 1.10, 0.70, 1.05, 0.80],
-  [1.10, 0.65, 1.00, 0.70, 1.05],
-  [0.70, 1.05, 0.65, 1.10, 0.75],
-  [1.05, 0.70, 1.10, 0.65, 1.00],
-  [0.65, 1.10, 0.70, 1.00, 0.80],
-  [1.00, 0.65, 1.05, 0.70, 1.10],
-  [0.70, 1.00, 0.65, 1.10, 0.75],
-  [1.10, 0.70, 1.00, 0.65, 1.05],
-  [0.65, 1.05, 0.70, 1.10, 0.80],
+const rowAspects5=[
+  [0.85, 1.10, 0.90, 1.05, 0.88],
+  [1.10, 0.85, 1.00, 0.90, 1.05],
+  [0.90, 1.05, 0.85, 1.10, 0.88],
+  [1.05, 0.90, 1.10, 0.85, 1.00],
+  [0.85, 1.10, 0.90, 1.00, 0.88],
+  [1.00, 0.85, 1.05, 0.90, 1.10],
+  [0.90, 1.00, 0.85, 1.10, 0.88],
+  [1.10, 0.90, 1.00, 0.85, 1.05],
+  [0.85, 1.05, 0.90, 1.10, 0.88],
 ];
+const rowAspects2=[
+  [0.90, 1.05],[1.05, 0.90],[0.85, 1.10],[1.10, 0.85],[0.90, 1.00],
+  [1.00, 0.90],[0.85, 1.05],[1.05, 0.85],[0.90, 1.10],[1.10, 0.90],
+  [0.85, 1.00],[1.00, 0.85],[0.90, 1.05],[1.05, 0.90],[0.85, 1.10],
+];
+const rowAspects=isMobile?rowAspects2:rowAspects5;
 
 const rowMaxH=rowAspects.map(row=>Math.max(...row.map(ar=>PLANE_W*ar)));
 const rowYOffsets=[];
@@ -168,13 +203,62 @@ camera.position.z=4.2;
 const texLoader=new THREE.TextureLoader();
 texLoader.crossOrigin='anonymous';
 const texCache=new Map();
+const videoTextures=[];
+
+function isGifUrl(url){
+  return /\.gif(\?|$)/i.test(url) || (url.includes('cloudinary.com') && url.includes('/upload/') && /\.gif$/i.test(url));
+}
+
+function gifToVideoUrl(url){
+  // Cloudinary: convert GIF to mp4 video via URL transformation
+  if(url.includes('cloudinary.com')&&url.includes('/upload/')){
+    return url.replace('/upload/','/upload/f_mp4,fl_lossy,q_auto/').replace(/\.gif$/i,'.mp4');
+  }
+  return url;
+}
+
+function loadVideoTexture(src,mesh,geo,planeW,cellH){
+  const videoUrl=gifToVideoUrl(src);
+  const video=document.createElement('video');
+  video.crossOrigin='anonymous';
+  video.src=videoUrl;
+  video.loop=true;
+  video.muted=true;
+  video.playsInline=true;
+  video.autoplay=true;
+  video.play().catch(()=>{});
+  const vTex=new THREE.VideoTexture(video);
+  vTex.colorSpace=THREE.SRGBColorSpace;
+  vTex.minFilter=THREE.LinearFilter;
+  vTex.magFilter=THREE.LinearFilter;
+  mesh.material.map=vTex;
+  mesh.material.color.set(0xffffff);
+  mesh.material.opacity=0;
+  mesh.material.transparent=true;
+  mesh.material.needsUpdate=true;
+  mesh.userData.fadeIn=true;
+  videoTextures.push(vTex);
+  video.addEventListener('loadedmetadata',()=>{
+    const vidAR=video.videoWidth/video.videoHeight;
+    let newH=planeW/vidAR;
+    const maxH=planeW*1.6;
+    if(newH>maxH)newH=maxH;
+    const newGeo=new THREE.PlaneGeometry(planeW,newH,8,8);
+    mesh.geometry.dispose();mesh.geometry=newGeo;
+    mesh.userData.origVerts=Float32Array.from(newGeo.attributes.position.array);
+    mesh.userData.planeH=newH;
+  });
+  mesh.userData.loaded=true;
+  texCache.set(src,vTex);
+}
 
 function applyCoverUV(geo,planeW,planeH,texW,texH){
+  // contain: show full image without cropping
   const uv=geo.attributes.uv;
   const planeAR=planeW/planeH, texAR=texW/texH;
   let su=1,sv=1,ou=0,ov=0;
-  if(planeAR>texAR){ sv=texAR/planeAR; ov=(1-sv)/2; }
-  else { su=planeAR/texAR; ou=(1-su)/2; }
+  if(planeAR>texAR){ su=planeAR/texAR; ou=(1-su)/2; }
+  else { sv=texAR/planeAR; ov=(1-sv)/2; }
   for(let i=0;i<uv.count;i++){ uv.setXY(i, ou+uv.getX(i)*su, ov+uv.getY(i)*sv); }
   uv.needsUpdate=true;
 }
@@ -188,14 +272,27 @@ for(let r=0;r<ROWS;r++){
     const idx=r*COLS+c;
     const cellH=PLANE_W*aspects[c];
     const geo=new THREE.PlaneGeometry(PLANE_W,cellH,8,8);
-    const mat=new THREE.MeshBasicMaterial({ color:new THREE.Color(['#2a2a2a','#252525','#2f2f2f','#222222'][idx%4]), side:THREE.DoubleSide });
+    const mat=new THREE.MeshBasicMaterial({ transparent:true, opacity:0, side:THREE.DoubleSide });
     const mesh=new THREE.Mesh(geo,mat);
     mesh.position.x=gridLeft+c*(PLANE_W+COL_GAP)+PLANE_W/2;
     mesh.userData={ origVerts:Float32Array.from(geo.attributes.position.array), col:c, row:r, idx, planeH:cellH, imgSrc:imgURLs[idx%imgURLs.length], caption:captions[idx%captions.length], loaded:false };
     scene.add(mesh); meshes.push(mesh);
     const src=mesh.userData.imgSrc;
-    if(texCache.has(src)){ const t=texCache.get(src); mesh.material.map=t;mesh.material.color.set(0xffffff);mesh.material.needsUpdate=true; applyCoverUV(geo,PLANE_W,cellH,t.image.width||600,t.image.height||600); mesh.userData.loaded=true; }
-    else { texLoader.load(src,tex=>{ tex.colorSpace=THREE.SRGBColorSpace; texCache.set(src,tex); mesh.material.map=tex;mesh.material.color.set(0xffffff);mesh.material.needsUpdate=true; applyCoverUV(mesh.geometry,PLANE_W,cellH,tex.image.width,tex.image.height); mesh.userData.loaded=true; }); }
+    if(texCache.has(src)){ const t=texCache.get(src); mesh.material.map=t;mesh.material.color.set(0xffffff);mesh.material.opacity=1;mesh.material.needsUpdate=true; if(t.image)applyCoverUV(geo,PLANE_W,cellH,t.image.width||t.image.videoWidth||600,t.image.height||t.image.videoHeight||600); mesh.userData.loaded=true; }
+    else if(isGifUrl(src)){ loadVideoTexture(src,mesh,geo,PLANE_W,cellH); }
+    else { texLoader.load(src,tex=>{ tex.colorSpace=THREE.SRGBColorSpace; texCache.set(src,tex); mesh.material.map=tex;mesh.material.color.set(0xffffff);mesh.material.opacity=0;mesh.material.transparent=true;mesh.material.needsUpdate=true;
+      mesh.userData.fadeIn=true;
+      // Resize plane to match image aspect ratio, cap max height
+      const imgAR=tex.image.width/tex.image.height;
+      let newH=PLANE_W/imgAR;
+      const maxH=PLANE_W*1.6;
+      if(newH>maxH)newH=maxH;
+      const newGeo=new THREE.PlaneGeometry(PLANE_W,newH,8,8);
+      mesh.geometry.dispose();mesh.geometry=newGeo;
+      mesh.userData.origVerts=Float32Array.from(newGeo.attributes.position.array);
+      mesh.userData.planeH=newH;
+      mesh.userData.loaded=true;
+    }); }
   }
   const initY=-(rowYOffsets[r]-GRID_H/2+rowMaxH[r]/2);
   rows.push({meshes,currentY:initY,targetY:initY,maxH:rowMaxH[r]});
@@ -261,6 +358,8 @@ function animate(time){
   requestAnimationFrame(animate);
   if(currentPage!=='home'||viewMode!=='grid'){renderer.render(scene,camera);return;}
   const dt=lastTime?(time-lastTime)/1000:0.016; lastTime=time;
+  // Auto scroll pelan
+  if(!isDragging){ scrollTarget-=0.03*dt; }
   if(isDragging){ scrollTarget+=momentum; const decay=0.88-Math.abs(momentum)*0.8; momentum*=Math.max(0.7,decay); if(Math.abs(momentum)<0.0005){momentum=0;isDragging=false;} }
   const prevScroll=scrollCurrent;
   scrollCurrent+=(scrollTarget-scrollCurrent)*conf.smoothing;
@@ -282,8 +381,12 @@ function animate(time){
     if(y>GRID_H/2)y-=GRID_H;
     if(Math.abs(y-row.targetY)>row.maxH*3)row.currentY=y;
     row.targetY=y; row.currentY+=(row.targetY-row.currentY)*0.1;
-    row.meshes.forEach(mesh=>{ mesh.position.y=row.currentY; const visible=mesh.position.y>-visH-margin&&mesh.position.y<visH+margin; mesh.visible=visible; if(visible)applyBarrelDistortion(mesh,mesh.position.y,smoothDistortion); });
+    row.meshes.forEach(mesh=>{ mesh.position.y=row.currentY; const visible=mesh.position.y>-visH-margin&&mesh.position.y<visH+margin; mesh.visible=visible;
+      // Fade in loaded images
+      if(mesh.userData.fadeIn&&mesh.material.opacity<1){mesh.material.opacity=Math.min(1,mesh.material.opacity+0.03);mesh.material.needsUpdate=true;if(mesh.material.opacity>=1)mesh.userData.fadeIn=false;}
+      if(visible)applyBarrelDistortion(mesh,mesh.position.y,smoothDistortion); });
   });
+  videoTextures.forEach(vt=>{ if(vt.image&&vt.image.readyState>=2) vt.needsUpdate=true; });
   renderer.render(scene,camera);
 }
 requestAnimationFrame(animate);
