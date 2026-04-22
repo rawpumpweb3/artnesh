@@ -4,85 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Artnesh — Portfolio</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{background:#0b0b0b;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;overflow:hidden;color:#fff;height:100%}
-.page{position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;opacity:0;filter:blur(18px);transform:scale(1.03);pointer-events:none;transition:opacity .55s cubic-bezier(.4,0,.2,1),filter .55s cubic-bezier(.4,0,.2,1),transform .55s cubic-bezier(.4,0,.2,1);will-change:opacity,filter,transform;z-index:5}
-.page.active{opacity:1;filter:blur(0);transform:scale(1);pointer-events:all}
-.page.exit{opacity:0;filter:blur(18px);transform:scale(.97);pointer-events:none}
-nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:#0b0b0b;display:flex;align-items:center;justify-content:space-between;padding:0 30px;height:50px;border-bottom:1px solid rgba(255,255,255,.06)}
-.nav-logo{font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#fff;cursor:pointer}
-.nav-links{display:flex;align-items:center;gap:28px}
-.nav-links a{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.4);text-decoration:none;cursor:pointer;transition:color .2s;position:relative}
-.nav-links a::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:1px;background:#fff;transform:scaleX(0);transition:transform .25s ease;transform-origin:left}
-.nav-links a.active{color:#fff}
-.nav-links a.active::after{transform:scaleX(1)}
-.nav-links a:hover{color:#fff}
-.bottom-bar{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:0 30px;height:42px;z-index:1000;background:transparent}
-.bottom-left{display:flex;align-items:center;gap:16px}
-.view-toggle{display:flex;align-items:center;gap:10px;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
-.view-toggle span{color:rgba(255,255,255,.3);cursor:pointer;transition:color .2s}
-.view-toggle span.active{color:#fff}
-.view-toggle .divider{color:rgba(255,255,255,.15);pointer-events:none}
-.bottom-clock{font-size:10px;letter-spacing:.1em;color:rgba(255,255,255,.25);font-variant-numeric:tabular-nums}
-.bottom-right{display:flex;align-items:center;gap:16px}
-.bottom-right a{display:flex;align-items:center;color:rgba(255,255,255,.35);transition:color .2s;text-decoration:none}
-.bottom-right a:hover{color:#fff}
-.bottom-right a svg{width:14px;height:14px;fill:currentColor}
-.bottom-copy{font-size:10px;letter-spacing:.08em;color:rgba(255,255,255,.2)}
-#grid-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:2;cursor:pointer}
-#page-home{background:transparent;z-index:0;pointer-events:none}
-.blur-layer{position:fixed;left:0;right:0;bottom:0;pointer-events:none;z-index:150}
-.bl1{height:200px;backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);mask-image:linear-gradient(to bottom,transparent 0%,black 60%,black 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 60%,black 100%)}
-.bl2{height:160px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);mask-image:linear-gradient(to bottom,transparent 0%,black 55%,black 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 55%,black 100%)}
-.bl3{height:120px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);mask-image:linear-gradient(to bottom,transparent 0%,black 50%,black 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 50%,black 100%)}
-.bl4{height:80px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);mask-image:linear-gradient(to bottom,transparent 0%,black 45%,black 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 45%,black 100%)}
-.bl5{height:48px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);mask-image:linear-gradient(to bottom,transparent 0%,black 40%,black 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 40%,black 100%)}
-#lightbox{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .35s ease}
-#lightbox.active{opacity:1;pointer-events:all}
-#lightbox-bg{position:absolute;inset:0;background:rgba(10,10,10,.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-#lightbox-img{position:relative;z-index:2;max-width:52vw;max-height:72vh;object-fit:contain;border-radius:4px;transform:scale(.93);transition:transform .35s cubic-bezier(.25,.46,.45,.94);pointer-events:none}
-#lightbox.active #lightbox-img{transform:scale(1)}
-#lightbox-caption{position:relative;z-index:2;margin-top:20px;font-size:12px;font-weight:500;letter-spacing:.06em;color:rgba(255,255,255,.7)}
-.inner-page{background:#0b0b0b;min-height:100vh;padding:50px 0 60px;display:flex;flex-direction:column}
-.inner-hero{padding:80px 48px 60px;border-bottom:1px solid rgba(255,255,255,.06)}
-.inner-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:28px}
-.inner-title{font-size:clamp(36px,5.5vw,80px);font-weight:300;letter-spacing:-.03em;line-height:1.05;color:#fff;max-width:800px}
-.inner-body{padding:48px;font-size:14px;line-height:1.9;color:rgba(255,255,255,.45);max-width:560px}
-.inner-body a{color:rgba(255,255,255,.75);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.2);transition:color .2s}
-.inner-body a:hover{color:#fff}
-.work-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.06)}
-.work-card{background:#0b0b0b;aspect-ratio:3/2;display:flex;flex-direction:column;justify-content:flex-end;padding:20px 24px;cursor:pointer;transition:background .25s;overflow:hidden;position:relative}
-.work-card:hover{background:rgba(255,255,255,.03)}
-.work-card-num{font-size:10px;letter-spacing:.12em;color:rgba(255,255,255,.2);margin-bottom:6px}
-.work-card-title{font-size:13px;letter-spacing:.04em;color:rgba(255,255,255,.7)}
-.about-stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(255,255,255,.06)}
-.stat-item{padding:36px 48px;border-right:1px solid rgba(255,255,255,.06)}
-.stat-item:last-child{border-right:none}
-.stat-num{font-size:clamp(28px,3vw,48px);font-weight:300;letter-spacing:-.02em;color:#fff;margin-bottom:6px}
-.stat-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.3)}
-.contact-email{padding:48px;border-top:1px solid rgba(255,255,255,.06)}
-.contact-email a{font-size:clamp(18px,2.5vw,32px);font-weight:300;letter-spacing:-.01em;color:rgba(255,255,255,.6);text-decoration:none;transition:color .25s;border:none}
-.contact-email a:hover{color:#fff}
-.contact-socials{padding:0 48px 48px;display:flex;gap:32px}
-.contact-socials a{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.3);text-decoration:none;transition:color .2s}
-.contact-socials a:hover{color:#fff}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <nav>
   <span class="nav-logo" onclick="goTo('home')">Artnesh</span>
-  <div class="nav-links">
-    <a id="nav-work" onclick="goTo('work')">Work</a>
-    <a id="nav-about" onclick="goTo('about')">About</a>
-    <a id="nav-contact" onclick="goTo('contact')">Contact</a>
-  </div>
+  <span class="nav-menu-btn" id="menu-btn" onclick="toggleMenu()">MENU</span>
 </nav>
+
+<div id="menu-overlay">
+  <div id="menu-overlay-bg"></div>
+  <div id="menu-links">
+    <a onclick="goTo('work');toggleMenu()">WORK</a>
+    <a onclick="goTo('about');toggleMenu()">ABOUT</a>
+    <a onclick="goTo('contact');toggleMenu()">CONTACT</a>
+  </div>
+</div>
 
 <!-- Three.js canvas for grid -->
 <canvas id="grid-canvas"></canvas>
 
-<div class="page" id="page-home"></div>
+<div class="page active" id="page-home"></div>
 
 <div class="page" id="page-work">
   <div class="inner-page">
@@ -121,284 +63,30 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:#0b0b0b;display:
 </div>
 
 <div id="lightbox"><div id="lightbox-bg"></div><img id="lightbox-img" src="" alt=""/><div id="lightbox-caption"></div></div>
+
+<div id="list-view">
+  <div id="list-track"></div>
+  <div id="list-caption"></div>
+</div>
+<div id="page-transition-overlay"></div>
+<div class="blur-layer-top bt1"></div><div class="blur-layer-top bt2"></div><div class="blur-layer-top bt3"></div><div class="blur-layer-top bt4"></div><div class="blur-layer-top bt5"></div>
 <div class="blur-layer bl1"></div><div class="blur-layer bl2"></div><div class="blur-layer bl3"></div><div class="blur-layer bl4"></div><div class="blur-layer bl5"></div>
 
 <div class="bottom-bar">
   <div class="bottom-left">
-    <div class="view-toggle"><span class="active" id="btn-grid">Grid</span><span class="divider">|</span><span id="btn-list">List</span></div>
-    <span class="bottom-clock" id="clock"></span>
-  </div>
-  <div class="bottom-right">
     <a href="https://instagram.com" target="_blank" title="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
     <a href="https://x.com" target="_blank" title="X"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
     <a href="mailto:artnesh06@gmail.com" title="Email"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></a>
+  </div>
+  <div class="bottom-center">
+    <div class="view-toggle"><span class="active" id="btn-grid">Grid</span><span class="divider">|</span><span id="btn-list">List</span></div>
+  </div>
+  <div class="bottom-right">
     <span class="bottom-copy">© 2026 build by artnesh</span>
   </div>
 </div>
 
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.179.0/build/three.module.js"}}</script>
-<script type="module">
-import * as THREE from 'three';
-
-// ── Clock ──
-function updateClock(){const n=new Date();document.getElementById('clock').textContent=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`;}
-updateClock();setInterval(updateClock,1000);
-
-// ── Page Transitions ──
-let currentPage='home';
-const blurLayers=document.querySelectorAll('.blur-layer');
-const gridCanvas=document.getElementById('grid-canvas');
-window.goTo=function(name){
-  if(name===currentPage)return;
-  const from=document.getElementById('page-'+currentPage),to=document.getElementById('page-'+name);
-  blurLayers.forEach(l=>l.style.display=name==='home'?'':'none');
-  gridCanvas.style.display=name==='home'?'':'none';
-  from.classList.remove('active');from.classList.add('exit');
-  setTimeout(()=>from.classList.remove('exit'),600);
-  to.scrollTop=0;setTimeout(()=>to.classList.add('active'),30);
-  document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
-  const navEl=document.getElementById('nav-'+name);if(navEl)navEl.classList.add('active');
-  currentPage=name;
-};
-document.getElementById('btn-grid').addEventListener('click',()=>{document.getElementById('btn-grid').classList.add('active');document.getElementById('btn-list').classList.remove('active');});
-document.getElementById('btn-list').addEventListener('click',()=>{document.getElementById('btn-list').classList.add('active');document.getElementById('btn-grid').classList.remove('active');});
-
-// ── Lightbox ──
-const lightbox=document.getElementById('lightbox'),lbImg=document.getElementById('lightbox-img'),lbCaption=document.getElementById('lightbox-caption');
-function openLightbox(s,c){lbImg.src=s;lbCaption.textContent=c;lightbox.classList.add('active');}
-function closeLightbox(){lightbox.classList.remove('active');}
-lightbox.addEventListener('click',closeLightbox);
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox();});
-
-// ══════════════════════════════════════════════════════════════
-// THREE.JS GRID WITH BARREL VERTEX DISTORTION
-// Same technique as siemprericc.com:
-// - Each image = PlaneGeometry with subdivisions
-// - Vertex Z displaced based on scroll velocity
-// - Creates real 3D barrel bulge effect
-// ══════════════════════════════════════════════════════════════
-
-// Config
-const COLS=5, ROWS=8, TOTAL=COLS*ROWS;
-const GAP=0.5;
-const PLANE_W=1.3, PLANE_H=1.0;
-const ROW_H=PLANE_H+GAP;
-const COL_W=PLANE_W+GAP;
-const GRID_W=COLS*COL_W;
-const GRID_H=ROWS*ROW_H;
-
-const conf={
-  smoothing:0.08,
-  distortionDecay:0.96,
-  maxDistortion:1.0,
-  distortionSmoothing:0.09,
-  wheelSens:0.0007,
-  touchSens:0.0007,
-};
-
-// Image URLs
-const imgURLs=[];
-const ids=[1005,1011,1012,1025,1027,1035,1036,1038,1039,1040,1041,1043,1044,1045,1047,1049,1050,1051,1052,1053,1055,1057,1058,1059,1060,1062,1063,1064,1065,1066,1067,1068,1069,1070,1071,1073,1074,1075,1076,1077];
-ids.forEach(id=>imgURLs.push(`https://picsum.photos/id/${id}/600/600`));
-const captions=['Studio Session','Morning Light','Editorial Vol.3','Untitled','Portrait Series','Commercial','Night Shoot','Archive 2023','Fashion Week','Candid','Documentary','Urban Portraits','Golden Hour','Studio Vol.7','Collaboration','Street','Personal Work','Cover Shoot','Editorial','Backstage','Rooftop','Archive Vol.2','Film Test','Portrait 35mm','Brand Campaign','Music Video','Candid Vol.4','Sunset','Polaroid','Studio Outtakes','Urban','Editorial Vol.8','Concert','Abstract','Personal Archive','Film Noir','Texture','Commercial 2025','Street Portrait','Closing'];
-
-// Renderer
-const canvas=document.getElementById('grid-canvas');
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
-renderer.setSize(window.innerWidth,window.innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.setClearColor(0x0b0b0b);
-
-// Scene & Camera
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x0b0b0b);
-const camera=new THREE.PerspectiveCamera(55,window.innerWidth/window.innerHeight,0.1,100);
-camera.position.z=4.2;
-
-// Texture loader
-const texLoader=new THREE.TextureLoader();
-texLoader.crossOrigin='anonymous';
-const texCache=new Map();
-
-// Create grid of planes
-const rows=[];
-const startX=-GRID_W/2+PLANE_W/2;
-
-for(let r=0;r<ROWS;r++){
-  const meshes=[];
-  for(let c=0;c<COLS;c++){
-    const idx=r*COLS+c;
-    // PlaneGeometry with subdivisions for vertex distortion
-    const geo=new THREE.PlaneGeometry(PLANE_W,PLANE_H,8,8);
-    const placeholderColors=['#2a2a2a','#252525','#2f2f2f','#222222'];
-    const mat=new THREE.MeshBasicMaterial({
-      color:new THREE.Color(placeholderColors[idx%4]),
-      side:THREE.DoubleSide
-    });
-    const mesh=new THREE.Mesh(geo,mat);
-    mesh.position.x=startX+c*COL_W;
-    mesh.position.y=0;
-    mesh.userData={
-      origVerts:Float32Array.from(geo.attributes.position.array),
-      col:c, row:r, idx,
-      imgSrc:imgURLs[idx%imgURLs.length],
-      caption:captions[idx%captions.length],
-      loaded:false
-    };
-    scene.add(mesh);
-    meshes.push(mesh);
-
-    // Load texture
-    const src=mesh.userData.imgSrc;
-    if(texCache.has(src)){
-      const t=texCache.get(src);
-      mesh.material.map=t;mesh.material.color.set(0xffffff);mesh.material.needsUpdate=true;
-      mesh.userData.loaded=true;
-    } else {
-      texLoader.load(src,tex=>{
-        tex.colorSpace=THREE.SRGBColorSpace;
-        texCache.set(src,tex);
-        mesh.material.map=tex;mesh.material.color.set(0xffffff);mesh.material.needsUpdate=true;
-        mesh.userData.loaded=true;
-      });
-    }
-  }
-  const initY=r*ROW_H-GRID_H/2+PLANE_H/2;
-  rows.push({meshes,currentY:initY,targetY:initY});
-}
-
-// ── Scroll State ──
-let scrollTarget=0,scrollCurrent=0,scrollVel=0;
-let distortionAmount=0,smoothDistortion=0;
-let isDragging=false,momentum=0;
-
-window.addEventListener('wheel',e=>{
-  if(currentPage!=='home')return;
-  e.preventDefault();
-  momentum+=e.deltaY*conf.wheelSens;
-  isDragging=true;
-  clearTimeout(window._scrollEnd);
-  window._scrollEnd=setTimeout(()=>{isDragging=false;momentum=0;},100);
-},{passive:false});
-
-let touchY=0;
-window.addEventListener('touchstart',e=>{if(currentPage!=='home')return;touchY=e.touches[0].clientY;momentum=0;isDragging=false;},{passive:true});
-window.addEventListener('touchmove',e=>{if(currentPage!=='home')return;const dy=(touchY-e.touches[0].clientY)*conf.touchSens;touchY=e.touches[0].clientY;momentum+=dy;isDragging=true;},{passive:true});
-window.addEventListener('touchend',()=>{isDragging=false;},{passive:true});
-
-// Click detection via raycaster
-const raycaster=new THREE.Raycaster();
-const mouse=new THREE.Vector2();
-canvas.addEventListener('click',e=>{
-  if(currentPage!=='home')return;
-  mouse.x=(e.clientX/window.innerWidth)*2-1;
-  mouse.y=-(e.clientY/window.innerHeight)*2+1;
-  raycaster.setFromCamera(mouse,camera);
-  const hits=raycaster.intersectObjects(scene.children);
-  if(hits.length>0){
-    const d=hits[0].object.userData;
-    if(d.imgSrc)openLightbox(d.imgSrc,d.caption);
-  }
-});
-
-// ── Barrel Vertex Distortion ──
-function applyBarrelDistortion(mesh,worldY,amount){
-  if(amount<0.005)return;
-  const pos=mesh.geometry.attributes.position;
-  const orig=mesh.userData.origVerts;
-  const maxDist=conf.maxDistortion*amount;
-  const radius=1.8;
-  for(let i=0;i<pos.count;i++){
-    const ox=orig[i*3], oy=orig[i*3+1];
-    const gy=worldY+oy;
-    const dx=ox, dy=gy;
-    const dist=Math.sqrt(dx*dx+dy*dy);
-    const norm=Math.max(0,1-dist/radius);
-    const z=Math.pow(Math.sin(norm*Math.PI/2),1.0)*maxDist;
-    pos.setZ(i,z);
-  }
-  pos.needsUpdate=true;
-}
-
-// ── Resize ──
-function onResize(){
-  camera.aspect=window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth,window.innerHeight);
-}
-window.addEventListener('resize',onResize);
-
-// ── Velocity tracking ──
-const velHistory=new Array(6).fill(0);
-let peakVel=0,lastTime=0;
-
-// ── Animation Loop ──
-function animate(time){
-  requestAnimationFrame(animate);
-  if(currentPage!=='home'){renderer.render(scene,camera);return;}
-
-  const dt=lastTime?(time-lastTime)/1000:0.016;
-  lastTime=time;
-
-  // Momentum & scroll
-  if(isDragging){
-    scrollTarget+=momentum;
-    const decay=0.97-Math.abs(momentum)*0.5;
-    momentum*=Math.max(0.92,decay);
-    if(Math.abs(momentum)<0.002){momentum=0;isDragging=false;}
-  }
-  const prevScroll=scrollCurrent;
-  scrollCurrent+=(scrollTarget-scrollCurrent)*conf.smoothing;
-  const vel=Math.abs(scrollCurrent-prevScroll)/dt;
-
-  // Velocity smoothing
-  velHistory.push(vel);velHistory.shift();
-  const avgVel=velHistory.reduce((a,b)=>a+b,0)/velHistory.length;
-  if(avgVel>peakVel)peakVel=avgVel;
-
-  // Distortion from velocity
-  const velNorm=Math.min(1,vel*0.08);
-  if(vel>0.04)distortionAmount=Math.max(distortionAmount,velNorm);
-
-  // Decay distortion
-  const isDecelerating=(avgVel/(peakVel+0.001))<0.7&&peakVel>0.4;
-  peakVel*=0.99;
-  if(isDecelerating||avgVel<0.18){
-    const decay=isDecelerating?conf.distortionDecay:conf.distortionDecay*0.9;
-    distortionAmount*=decay;
-  }
-  smoothDistortion+=(distortionAmount-smoothDistortion)*conf.distortionSmoothing;
-
-  // Visible range
-  const fovRad=camera.fov*Math.PI/180;
-  const visH=Math.tan(fovRad/2)*camera.position.z;
-  const margin=1.2;
-
-  // Update rows (infinite scroll wrap)
-  rows.forEach((row,ri)=>{
-    let y=ri*ROW_H-scrollCurrent-GRID_H/2+PLANE_H/2;
-    // Wrap
-    y=((y%GRID_H)+GRID_H)%GRID_H;
-    if(y>GRID_H/2)y-=GRID_H;
-
-    // Lerp
-    if(Math.abs(y-row.targetY)>ROW_H*2)row.currentY=y;
-    row.targetY=y;
-    row.currentY+=(row.targetY-row.currentY)*0.1;
-
-    row.meshes.forEach(mesh=>{
-      mesh.position.y=row.currentY;
-      const visible=mesh.position.y>-visH-margin&&mesh.position.y<visH+margin;
-      mesh.visible=visible;
-      if(visible){
-        applyBarrelDistortion(mesh,mesh.position.y,smoothDistortion);
-      }
-    });
-  });
-
-  renderer.render(scene,camera);
-}
-requestAnimationFrame(animate);
-</script>
+<script type="module" src="script.js"></script>
 </body>
 </html>
