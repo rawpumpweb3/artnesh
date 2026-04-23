@@ -3,14 +3,37 @@ import * as THREE from 'three';
 // ── Image Data (shared by grid + list) ──
 const imgURLs=[];
 const captions=[];
-const storedImages=(()=>{ try{ return JSON.parse(localStorage.getItem('artnesh_images'))||[]; }catch(e){ return []; } })();
-const hasStored=storedImages.some(item=>item!==null);
-if(hasStored){
-  storedImages.forEach(item=>{ if(item){ imgURLs.push(item.src); captions.push(item.caption||'Untitled'); } });
-} else {
-  const ids=[1005,1011,1012,1025,1027,1035,1036,1038,1039,1040,1041,1043,1044,1045,1047,1049,1050,1051,1052,1053,1055,1057,1058,1059,1060,1062,1063,1064,1065,1066,1067,1068,1069,1070,1071,1073];
-  ids.forEach(id=>imgURLs.push(`https://picsum.photos/id/${id}/900/600`));
-  captions.push('Studio Session','Morning Light','Editorial Vol.3','Untitled','Portrait Series','Commercial','Night Shoot','Archive 2023','Fashion Week','Candid','Documentary','Urban Portraits','Golden Hour','Studio Vol.7','Collaboration','Street','Personal Work','Cover Shoot','Editorial','Backstage','Rooftop','Archive Vol.2','Film Test','Portrait 35mm','Brand Campaign','Music Video','Candid Vol.4','Sunset','Polaroid','Studio Outtakes','Urban','Editorial Vol.8','Concert','Abstract','Personal Archive','Film Noir');
+
+const defaultIds=[1005,1011,1012,1025,1027,1035,1036,1038,1039,1040,1041,1043,1044,1045,1047,1049,1050,1051,1052,1053,1055,1057,1058,1059,1060,1062,1063,1064,1065,1066,1067,1068,1069,1070,1071,1073];
+const defaultCaptions=['Studio Session','Morning Light','Editorial Vol.3','Untitled','Portrait Series','Commercial','Night Shoot','Archive 2023','Fashion Week','Candid','Documentary','Urban Portraits','Golden Hour','Studio Vol.7','Collaboration','Street','Personal Work','Cover Shoot','Editorial','Backstage','Rooftop','Archive Vol.2','Film Test','Portrait 35mm','Brand Campaign','Music Video','Candid Vol.4','Sunset','Polaroid','Studio Outtakes','Urban','Editorial Vol.8','Concert','Abstract','Personal Archive','Film Noir'];
+
+function loadDefaults(){
+  defaultIds.forEach(id=>imgURLs.push(`https://picsum.photos/id/${id}/900/600`));
+  defaultCaptions.forEach(c=>captions.push(c));
+}
+
+// Try loading from images.json first (saved/persistent data), then localStorage, then defaults
+let _imagesReady;
+try {
+  const res=await fetch('images.json');
+  if(res.ok){
+    const saved=await res.json();
+    const filled=saved.filter(item=>item!==null);
+    if(filled.length>0){
+      filled.forEach(item=>{ imgURLs.push(item.src); captions.push(item.caption||'Untitled'); });
+      _imagesReady=true;
+    }
+  }
+} catch(e){}
+
+if(!_imagesReady){
+  const storedImages=(()=>{ try{ return JSON.parse(localStorage.getItem('artnesh_images'))||[]; }catch(e){ return []; } })();
+  const hasStored=storedImages.some(item=>item!==null);
+  if(hasStored){
+    storedImages.forEach(item=>{ if(item){ imgURLs.push(item.src); captions.push(item.caption||'Untitled'); } });
+  } else {
+    loadDefaults();
+  }
 }
 
 // ── Menu Overlay ──

@@ -36,9 +36,10 @@ body{background:#0b0b0b;color:#fff;font-family:'Inter',sans-serif;min-height:100
 </nav>
 <div class="admin-container">
   <div class="section-title">Gallery Slots (50) — Cloudinary Storage</div>
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+    <button id="btn-save" style="padding:8px 20px;background:rgba(39,174,96,.25);border:1px solid rgba(39,174,96,.4);border-radius:4px;color:#27ae60;font-family:'Playfair Display',serif;font-size:11px;letter-spacing:.1em;cursor:pointer;transition:background .2s,transform .1s" onmousedown="this.style.transform='scale(.97)'" onmouseup="this.style.transform='scale(1)'" onmouseleave="this.style.transform='scale(1)'">💾 Save &amp; Publish</button>
     <button id="btn-random" style="padding:8px 20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:4px;color:#fff;font-family:'Playfair Display',serif;font-size:11px;letter-spacing:.1em;cursor:pointer;transition:background .2s">↻ Randomize Order</button>
-    <span style="font-size:10px;color:rgba(255,255,255,.2)">Shuffle image positions on the main page</span>
+    <span id="save-status" style="font-size:10px;color:rgba(255,255,255,.2)">Changes are saved to localStorage. Click "Save &amp; Publish" to make them permanent.</span>
   </div>
   <div class="slots" id="slots"></div>
   <div style="margin-top:24px;font-size:11px;color:rgba(255,255,255,.2);line-height:1.8">Images uploaded to Cloudinary (cloud). No size limit per image. Click slot to upload, hover to replace/remove.</div>
@@ -166,5 +167,23 @@ document.getElementById('btn-random').addEventListener('click',()=>{
   saveImages(newImgs);
   toast('Urutan gambar di-random ✓','success');
   render();
+});
+
+// ── Save & Publish: write images.json via download ──
+document.getElementById('btn-save').addEventListener('click',()=>{
+  const imgs=getImages();
+  const json=JSON.stringify(imgs,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='images.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  document.getElementById('save-status').textContent='✓ images.json downloaded — replace the file in your project folder, then deploy.';
+  document.getElementById('save-status').style.color='#27ae60';
+  toast('images.json downloaded! Taruh di folder project lalu deploy.','success');
 });
 </script>
